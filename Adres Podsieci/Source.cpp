@@ -3,7 +3,7 @@
 #include <bitset>
 
 //funkcja sprawdzajaca czy na wejscie zostaly podane  4 maksymalnie trzycyfrowe liczby oddzielone kropkami
-bool Validate1(std::string input) { 
+bool ValidateFormat(std::string input) { 
 	int countDigits = 0; //licznik cyfr
 	int countDots = 0; //licznik kropek
 	for (int i = 0; i < input.length(); i++) {
@@ -22,6 +22,9 @@ bool Validate1(std::string input) {
 			if (countDots > 3) //falsz jesli kropek bylo wiecej niz trzy
 				return false;
 		}
+	}
+	if (countDots == 0) {
+		return false;
 	}
 	return true;
 }
@@ -42,16 +45,57 @@ void ParseInput(std::string input, int* numbers) { //funkcja wpisujaca do tablic
 	numbers[part] = stoi(temp); //wpisanie ostatniej liczby
 }
 
-int main() {
-	int IPv4;
-	int numbers[4];
-	int SubnetMask;
-	std::string input;
-	std::cin >> input;
-	if (Validate1(input)) {
-		ParseInput(input, numbers);
-		for (int i = 0; i < 4; i++) {
-			std::cout << numbers[i] << " ";
+bool ValidateRange(int* numbers){ //funkcja sprawdzajaca zakres danych liczb
+	for (int i = 0; i < 4; i++) {
+		if (numbers[i] < 0 || numbers[i]>255)
+			return false;
+	}
+	return true;
+}
+
+bool ValidateMask(int* mask) {
+	int n = 128;
+	bool zero = false;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 8; j++, n /= 2) {
+			if ((mask[i] & n) == n) {
+				if (zero)
+					return false;
+			}
+			else {
+				zero = true;
+			}
 		}
+		n = 128;
+	}
+	return true;
+}
+
+int main() {
+	//std::bitset<8> IPv4[4];
+	int IPv4[4];
+	int subnetMask[4];
+	std::string input;
+	std::cout << "Wpisz adres IPv4" << std::endl;
+	while (std::cin >> input) {
+		if (ValidateFormat(input)) {
+			ParseInput(input, IPv4);
+			if (ValidateRange(IPv4)) {	
+				break;
+			}
+		}
+		std::cout << "Podany adres IPv4 jest nieprawidlowy." << std::endl << "Wpisz jeszcze raz" << std::endl;
+	}
+	std::cout << "Wpisz maske podsieci" << std::endl;
+	while (std::cin >> input) {
+		if (ValidateFormat(input)) {
+			ParseInput(input, subnetMask);
+			if (ValidateRange(subnetMask)) {
+				if (ValidateMask(subnetMask)) {
+					break;
+				}
+			}
+		}
+		std::cout << "Podana maska podsieci jest nieprawidlowa." << std::endl << "Wpisz jeszcze raz" << std::endl;
 	}
 }
